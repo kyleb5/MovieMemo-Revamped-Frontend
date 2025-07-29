@@ -1,11 +1,13 @@
 "use client";
 import { useAuth } from "../../hooks/useAuth";
+import { createUser } from "../../hooks/userData"; // Import your API function
 import { useState } from "react";
 
 export default function SignupForm() {
   const { signUp, sendVerification } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState(""); // Add username field
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -13,27 +15,50 @@ export default function SignupForm() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    
     try {
+      // 1. Create Firebase Auth user
       const userCredential = await signUp(email, password);
+      
+      // 2. Create user profile in your API
+      const apiResult = await createUser({
+        email: email,
+        username: username,
+        uid: userCredential.user.uid,
+      });
+      
+      if (!apiResult.success) {
+        throw new Error(apiResult.message || "Failed to create user profile");
+      }
+      
+      // 3. Send email verification
       await sendVerification(userCredential.user);
+      
       setSuccess("Account created! Please check your email to verify your account.");
       setEmail("");
       setPassword("");
+      setUsername("");
     } catch (err: any) {
       setError(err.message);
     }
   };
 
   return (
-    <form onSubmit={handleSignup} className="flex flex-col gap-2 w-72">
-      <h2 className="font-bold text-lg">Sign Up</h2>
+    <form onSubmit={handleSignup} className="bg-white dark:bg-black text-black dark:text-white">
+      <h2>Sign Up</h2>
+      <input
+        type="text"
+        placeholder="Username"
+        value={username}
+        onChange={e => setUsername(e.target.value)}
+        required
+      />
       <input
         type="email"
         placeholder="Email"
         value={email}
         onChange={e => setEmail(e.target.value)}
         required
-        className="border px-2 py-1 rounded"
       />
       <input
         type="password"
@@ -41,13 +66,10 @@ export default function SignupForm() {
         value={password}
         onChange={e => setPassword(e.target.value)}
         required
-        className="border px-2 py-1 rounded"
       />
-      <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded mt-2">
-        Create Account
-      </button>
-      {error && <p className="text-red-500">{error}</p>}
-      {success && <p className="text-green-600">{success}</p>}
+      <button type="submit">Create Account</button>
+      {error && <p>{error}</p>}
+      {success && <p>{success}</p>}
     </form>
   );
 }

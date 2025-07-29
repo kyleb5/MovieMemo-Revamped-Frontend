@@ -11,6 +11,7 @@ import {
   User,
 } from "firebase/auth";
 
+
 // Custom React hook to manage Firebase authentication
 export function useAuth() {
   // State to hold the current authenticated user (null if not logged in)
@@ -49,6 +50,9 @@ export function useAuth() {
   // Send a password reset email to the given email address
   const sendPasswordReset = (email: string) =>
     sendPasswordResetEmail(auth, email);
+
+
+  
 
   // Return all state and auth actions for use in components
   return {
