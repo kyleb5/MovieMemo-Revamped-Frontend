@@ -1,27 +1,21 @@
 "use client";
 import { useAuth } from "../hooks/useAuth";
-import GoogleSignInButton from "../components/Auth/GoogleSignInButton";
-import SignupForm from "../components/Auth/SignupForm";
-import ResetPasswordForm from "../components/Auth/ResetPasswordForm";
-import Navbar from "@/components/Navbar";
 
 export default function Home() {
-  const { user, signOutUser, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) return <div>Loading...</div>;
 
   return (
-   <div className="">
-    <main className="">
-
+   <div>
+    <main>
         {!user ? (
-          <div className="flex flex-col gap-8 items-center">
-            <SignupForm />
-            <ResetPasswordForm />
+          <div>
+            Welcome
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-4">
-            <p>Welcome, {user.displayName || user.email}</p>
+          <div>
+            <p>Welcome, {user.displayName || user.email || "User"}</p>
             {user.photoURL && (
               <img src={user.photoURL} alt="Profile" className="w-16 h-16 rounded-full" />
             )}

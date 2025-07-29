@@ -1,58 +1,81 @@
 "use client";
-import { useAuth } from "../../hooks/useAuth"; // Custom hook for authentication actions/state
-import { useRouter } from "next/navigation";   // Next.js App Router navigation
-import { useState } from "react";              // React state management
+import { useAuth } from "../../hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import GoogleSignInButton from "./GoogleSignInButton";
 
-// LoginForm component handles user login with email and password
 export default function LoginForm() {
-  const router = useRouter(); // Used to redirect after successful login
-  const { signIn } = useAuth(); // signIn function from custom auth hook
-  const [email, setEmail] = useState(""); // State for email input
-  const [password, setPassword] = useState(""); // State for password input
-  const [error, setError] = useState(""); // State for error message
+  const router = useRouter();
+  const { signIn } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  // Handles form submission for login
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission
-    setError(""); // Clear any previous error
+    e.preventDefault();
+    setError("");
     try {
-      await signIn(email, password); // Attempt to sign in with email/password
-      setEmail(""); // Clear email input
-      setPassword(""); // Clear password input
-      router.push("/"); // Redirect to homepage on success
+      await signIn(email, password);
+      setEmail("");
+      setPassword("");
+      router.push("/");
     } catch (err: any) {
-      setError("Incorrect email or password."); // Show generic error on failure
+      setError("Incorrect email or password.");
     }
   };
 
-  // Render the login form
   return (
-    <form onSubmit={handleLogin} className="flex flex-col gap-2 w-72">
-      <h2 className="font-bold text-lg">Login</h2>
-      {/* Email input field */}
+    <form
+      onSubmit={handleLogin}
+      className="mx-auto mt-16 max-w-sm rounded-xl shadow-lg bg-white dark:bg-neutral-900 p-8 flex flex-col gap-6 border border-neutral-200 dark:border-neutral-800"
+    >
+      <h2 className="text-2xl font-semibold text-center text-neutral-900 dark:text-white mb-2">
+        Login
+      </h2>
       <input
         type="email"
         placeholder="Email"
         value={email}
         onChange={e => setEmail(e.target.value)}
         required
-        className="border px-2 py-1 rounded"
+        className="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
       />
-      {/* Password input field */}
       <input
         type="password"
         placeholder="Password"
         value={password}
         onChange={e => setPassword(e.target.value)}
         required
-        className="border px-2 py-1 rounded"
+        className="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
       />
-      {/* Submit button */}
-      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded mt-2">
-        Login
-      </button>
-      {/* Error message display */}
-      {error && <p className="text-red-500">{error}</p>}
+      <div className="flex gap-3 items-center">
+        <button
+          type="submit"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-all duration-200 cursor-pointer active:scale-95 focus:scale-95"
+        >
+          Login
+        </button>
+        <GoogleSignInButton />
+      </div>
+      {error && (
+        <p className="text-red-500 text-center text-sm">{error}</p>
+      )}
+      <div className="flex flex-col gap-2 mt-2">
+        <button
+          type="button"
+          onClick={() => router.push("/signup")}
+          className="w-full text-blue-600 hover:underline text-sm transition-all duration-200 cursor-pointer active:scale-95 focus:scale-95"
+        >
+          Don't Have an Account?
+        </button>
+        <button
+          type="button"
+          onClick={() => router.push("/forgot-password")}
+          className="w-full text-blue-600 hover:underline text-sm transition-all duration-200 cursor-pointer active:scale-95 focus:scale-95"
+        >
+          Forgot Password?
+        </button>
+      </div>
     </form>
   );
 }
