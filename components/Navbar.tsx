@@ -1,7 +1,7 @@
 "use client"; // Ensures this component is rendered on the client side (required for hooks like useTheme)
 
 import Link from "next/link"; // For navigation links
-import { useEffect, useState } from "react"; // React hooks
+import { use, useEffect, useState } from "react"; // React hooks
 import { useTheme } from "next-themes"; // Theme switching (light/dark)
 import { useAuth } from "../hooks/useAuth"; // Custom authentication hook
 import { SunIcon, MoonIcon } from "@heroicons/react/24/solid"; // Icons for theme toggle
@@ -9,7 +9,7 @@ import GravatarProfileIcon from "./GravatarProfileIcon";
 
 export default function Navbar() {
   // Get user info and sign out function from custom auth hook
-  const { user, signOutUser } = useAuth();
+  const { user, customUser, signOutUser } = useAuth();
 
   // Get current theme and function to change it from next-themes
   const { theme, setTheme } = useTheme();
@@ -22,9 +22,19 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
+  console.warn(customUser);
+
+  
+
   return (
     <nav className="w-full flex items-center justify-between px-8 py-4 bg-gray-900 text-white">
-      <div className="text-xl font-bold">MovieMemo</div>
+      <div className="text-xl font-bold">
+        <Link
+            href="/"
+            className=""
+          >
+            MovieMemo
+          </Link></div>
       <div className="flex items-center gap-2">
         {mounted && (
           <button
@@ -42,8 +52,8 @@ export default function Navbar() {
                 {user ? (
           <>
             {/* Profile icon, clickable to go to user's profile page */}
-            <Link href={`/profile/${user.uid}`}>
-              <GravatarProfileIcon email={user.email ?? undefined} photoURL={user.photoURL ?? undefined} size={32} />
+            <Link href={`/profile/${customUser?.username}`}>
+              <GravatarProfileIcon email={user.email ?? undefined} size={32} />
             </Link>
             <button
               onClick={signOutUser}
