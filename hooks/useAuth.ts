@@ -10,59 +10,61 @@ import {
   sendPasswordResetEmail,
   User,
 } from "firebase/auth";
+import { getUserByUid } from "./userData"; // Function to fetch your backend user by Firebase UID
 
-
-// Custom React hook to manage Firebase authentication
 export function useAuth() {
-  // State to hold the current authenticated user (null if not logged in)
+  // State for the Firebase user object (from Firebase Auth)
   const [user, setUser] = useState<User | null>(null);
-  // State to indicate if the auth state is still loading (useful for SSR or initial load)
+  // State for loading status (true while checking auth state)
   const [loading, setLoading] = useState(true);
+  // State for your backend user object (custom user info, e.g. username)
+  const [customUser, setCustomUser] = useState<any>(null);
 
-  // Effect to subscribe to Firebase auth state changes (login/logout)
   useEffect(() => {
-    // Listen for changes in authentication state
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser); // Set the user (or null if logged out)
-      setLoading(false);     // Set loading to false once we know the state
+    // Listen for Firebase Auth state changes (login/logout)
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser); // Set the Firebase user
+      setLoading(false);     // Done loading
+
+      // If logged in, fetch your backend user info using the Firebase UID
+      if (firebaseUser) {
+        const backendUser = await getUserByUid(firebaseUser.uid);
+        // Some APIs return { user: {...} }, some just {...}
+        setCustomUser(backendUser?.user || backendUser);
+      } else {
+        setCustomUser(null); // Not logged in, clear custom user
+      }
     });
-    // Cleanup the listener on unmount
+    // Cleanup listener on unmount
     return unsubscribe;
   }, []);
 
   // Sign in with Google popup
   const signInWithGoogle = () => signInWithPopup(auth, provider);
-
-  // Sign out the current user
+  // Sign out the user
   const signOutUser = () => signOut(auth);
-
-  // Create a new user with email and password
+  // Sign up with email and password
   const signUp = (email: string, password: string) =>
     createUserWithEmailAndPassword(auth, email, password);
-
-  // Send a verification email to the current user
+  // Send email verification to the user
   const sendVerification = (user: User) => sendEmailVerification(user);
-
   // Sign in with email and password
   const signIn = (email: string, password: string) =>
     signInWithEmailAndPassword(auth, email, password);
-
-  // Send a password reset email to the given email address
+  // Send password reset email
   const sendPasswordReset = (email: string) =>
     sendPasswordResetEmail(auth, email);
 
-
-  
-
-  // Return all state and auth actions for use in components
+  // Return all useful values and functions from the hook
   return {
-    user,                // The current user object (or null)
-    loading,             // Whether the auth state is still loading
-    signInWithGoogle,    // Function to sign in with Google
-    signOutUser,         // Function to sign out
-    signUp,              // Function to sign up with email/password
-    sendVerification,    // Function to send email verification
-    signIn,              // Function to sign in with email/password
-    sendPasswordReset,   // Function to send password reset
+    user,                // Firebase user object (email, uid, etc.)
+    customUser,          // Your backend user object (username, id, etc.)
+    loading,             // Loading state for auth
+    signInWithGoogle,    // Google sign-in function
+    signOutUser,         // Sign out function
+    signUp,              // Email/password sign up
+    sendVerification,    // Send email verification
+    signIn,              // Email/password sign in
+    sendPasswordReset,   // Send password reset email
   };
 }

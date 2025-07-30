@@ -35,16 +35,41 @@ export async function createUser(userData: CreateUserData): Promise<CreateUserRe
   }
 }
 
-export async function getUserById(uid: string) {
+export async function getUserByUsername(username: string) {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/users/username/${username}/`);
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      return null;
+    }
+    console.error('Error fetching user by username:', error);
+    return null;
+  }
+}
+
+export async function getUserByUid(uid: string) {
   try {
     const response = await axios.get(`${API_BASE_URL}/users/${uid}/`);
     return response.data;
   } catch (error: any) {
-    // Don't log 404 as error since it's expected when user doesn't exist
     if (error.response?.status === 404) {
       return null;
     }
-    console.error('Error fetching user:', error);
+    console.error('Error fetching user by username:', error);
+    return null;
+  }
+}
+
+export async function userUsernameExists(username: string) {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/users/check/username/${username}/`);
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      return null;
+    }
+    console.error('Error fetching user by username:', error);
     return null;
   }
 }

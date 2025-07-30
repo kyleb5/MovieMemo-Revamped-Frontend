@@ -1,6 +1,6 @@
 "use client";
 import { useAuth } from "../../hooks/useAuth";
-import { createUser, getUserById, userExists } from "../../hooks/userData";
+import { createUser, userExists } from "../../hooks/userData";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
