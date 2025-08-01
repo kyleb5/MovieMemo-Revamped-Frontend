@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    domains: ["kyleb.dev", "gravatar.com", "cdn.kyleb.dev"],
+  },
 };
 
 export default nextConfig;

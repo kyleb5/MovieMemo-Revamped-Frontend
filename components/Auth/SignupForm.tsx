@@ -4,7 +4,7 @@ import { createUser } from "../../hooks/userData"; // Import your API function
 import { useState } from "react";
 
 export default function SignupForm() {
-  const { signUp, sendVerification } = useAuth();
+  const { signUp, sendVerification, signOutUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState(""); // Add username field
@@ -34,7 +34,10 @@ export default function SignupForm() {
       // 3. Send email verification
       await sendVerification(userCredential.user);
       
-      setSuccess("Account created! Please check your email to verify your account.");
+      // 4. Sign out user so they must log in manually
+      await signOutUser();
+      
+      setSuccess("Account created! Please check your email to verify your account, then log in.");
       setEmail("");
       setPassword("");
       setUsername("");
