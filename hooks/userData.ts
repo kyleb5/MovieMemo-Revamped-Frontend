@@ -84,3 +84,4 @@ export async function userExists(uid: string): Promise<boolean> {
     return false;
   }
 }
+

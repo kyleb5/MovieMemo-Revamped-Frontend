@@ -10,7 +10,7 @@ import {
   sendPasswordResetEmail,
   User,
 } from "firebase/auth";
-import { getUserByUid } from "./userData"; // Function to fetch your backend user by Firebase UID
+import { getUserByUid, userExists } from "./userData"; // Function to fetch your backend user by Firebase UID
 
 export function useAuth() {
   // State for the Firebase user object (from Firebase Auth)
@@ -18,7 +18,7 @@ export function useAuth() {
   // State for loading status (true while checking auth state)
   const [loading, setLoading] = useState(true);
   // State for your backend user object (custom user info, e.g. username)
-  const [customUser, setCustomUser] = useState<any>(null);
+  const [publicUser, setPublicUser] = useState<any>(null);
 
   useEffect(() => {
     // Listen for Firebase Auth state changes (login/logout)
@@ -28,11 +28,17 @@ export function useAuth() {
 
       // If logged in, fetch your backend user info using the Firebase UID
       if (firebaseUser) {
-        const backendUser = await getUserByUid(firebaseUser.uid);
-        // Some APIs return { user: {...} }, some just {...}
-        setCustomUser(backendUser?.user || backendUser);
-      } else {
-        setCustomUser(null); // Not logged in, clear custom user
+        // First check if user exists in backend
+        const exists = await userExists(firebaseUser.uid);
+        if (exists) {
+          // Only fetch if user exists
+          const backendUser = await getUserByUid(firebaseUser.uid);
+          if (backendUser) {
+            setPublicUser(backendUser?.user || backendUser);
+          } else {
+            setPublicUser(null);
+          }
+        }
       }
     });
     // Cleanup listener on unmount
@@ -58,7 +64,7 @@ export function useAuth() {
   // Return all useful values and functions from the hook
   return {
     user,                // Firebase user object (email, uid, etc.)
-    customUser,          // Your backend user object (username, id, etc.)
+    publicUser,          // Your backend user object (username, id, etc.)
     loading,             // Loading state for auth
     signInWithGoogle,    // Google sign-in function
     signOutUser,         // Sign out function
