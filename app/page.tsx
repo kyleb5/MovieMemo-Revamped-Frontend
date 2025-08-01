@@ -1,6 +1,7 @@
 "use client";
 import { useAuth } from "../hooks/useAuth";
 import UserVerifcationCheck from "../components/Auth/UserVerifcationCheck"
+import PopularMovies from "@/components/Movie/PopularMovies";
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -10,7 +11,7 @@ export default function Home() {
   return (
    <div>
     <main>
-        
+        <PopularMovies />
       </main>
     </div>
   );
