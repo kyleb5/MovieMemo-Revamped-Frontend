@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuthContext } from "./AuthContext"; // Import our global context
 import { auth, provider } from "../firebase";
 import {
   signInWithPopup,
@@ -13,18 +14,16 @@ import {
 import { getUserByUid, userExists } from "./userData"; // Function to fetch your backend user by Firebase UID
 
 export function useAuth() {
-  // State for the Firebase user object (from Firebase Auth)
-  const [user, setUser] = useState<User | null>(null);
-  // State for loading status (true while checking auth state)
-  const [loading, setLoading] = useState(true);
-  // State for your backend user object (custom user info, e.g. username)
-  const [publicUser, setPublicUser] = useState<any>(null);
+  // IMPORTANT: Instead of local state, we now use GLOBAL context state
+  // This means all components using useAuth() share the same user data
+  // When one component updates the user data, ALL components see the change
+  const { user, setUser, loading, setLoading, publicUser, setPublicUser } = useAuthContext();
 
   useEffect(() => {
     // Listen for Firebase Auth state changes (login/logout)
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser); // Set the Firebase user
-      setLoading(false);     // Done loading
+      setUser(firebaseUser); // Update GLOBAL Firebase user state
+      setLoading(false);     // Update GLOBAL loading state
 
       // If logged in, fetch your backend user info using the Firebase UID
       if (firebaseUser) {
@@ -34,6 +33,7 @@ export function useAuth() {
           // Only fetch if user exists
           const backendUser = await getUserByUid(firebaseUser.uid);
           if (backendUser) {
+            // Update GLOBAL backend user state - this will update Navbar automatically
             setPublicUser(backendUser?.user || backendUser);
           } else {
             setPublicUser(null);
@@ -43,7 +43,7 @@ export function useAuth() {
     });
     // Cleanup listener on unmount
     return unsubscribe;
-  }, []);
+  }, [setUser, setLoading, setPublicUser]); // Dependencies include the context setters
 
   // Sign in with Google popup
   const signInWithGoogle = () => signInWithPopup(auth, provider);
@@ -64,13 +64,14 @@ export function useAuth() {
   // Return all useful values and functions from the hook
   return {
     user,                // Firebase user object (email, uid, etc.)
-    publicUser,          // Your backend user object (username, id, etc.)
-    loading,             // Loading state for auth
+    publicUser,          // Your backend user object (username, id, etc.) - GLOBAL STATE
+    loading,             // Loading state for auth - GLOBAL STATE
     signInWithGoogle,    // Google sign-in function
     signOutUser,         // Sign out function
     signUp,              // Email/password sign up
     sendVerification,    // Send email verification
     signIn,              // Email/password sign in
     sendPasswordReset,   // Send password reset email
+    setPublicUser,       // CRITICAL: Expose this so components can update global user state
   };
 }

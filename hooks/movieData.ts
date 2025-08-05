@@ -33,6 +33,33 @@ export async function getPopularMoviesThisWeek(page: number = 1) {
   }
 }
 
+export async function getMovieById(movieId: string | number) {
+  try {
+    const response = await axios.get(`${TMDB_BASE_URL}/movie/${movieId}`, {
+      headers: {
+        'Authorization': `Bearer ${tmdbBearerToken}`,
+        'accept': 'application/json'
+      },
+      params: {
+        language: 'en-US',
+        append_to_response: 'credits,videos,images,similar'
+      }
+    });
+
+    return {
+      success: true,
+      movie: response.data
+    };
+  } catch (error: any) {
+    console.error('Error fetching movie by ID:', error);
+    return {
+      success: false,
+      error: error.response?.data?.status_message || error.message || 'Failed to fetch movie details',
+      movie: null
+    };
+  }
+}
+
 // You can also keep the original function for general popular movies
 export async function getPopularMovies(page: number = 1) {
   try {

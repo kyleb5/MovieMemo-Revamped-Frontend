@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "../components/Navbar";
 import { ThemeProvider } from "next-themes";
+import { AuthProvider } from "../hooks/AuthContext"; // Import our global auth provider
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,10 +28,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Navbar />
-          {children}
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            {/* 
+              Navbar is inside AuthProvider, so it can access global user state
+              When setPublicUser() is called anywhere in the app, Navbar updates automatically
+            */}
+            <Navbar />
+            {children}
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );
