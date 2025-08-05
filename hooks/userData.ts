@@ -85,3 +85,114 @@ export async function userExists(uid: string): Promise<boolean> {
   }
 }
 
+export async function changeUsername(uid: string, newUsername: string) {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/users/${uid}/change_username/`,
+      { new_username: newUsername },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return {
+      success: true,
+      message: response.data.message || 'Username changed successfully.',
+      user: response.data.user,
+      remaining: response.data.remaining || null,
+    };
+  } catch (error: any) {
+    // Handle Django error responses
+    if (error.response?.data) {
+      return {
+        success: false,
+        error: error.response.data.message || error.response.data.error || 'Failed to change username.',
+        remaining: error.response.data.remaining || null,
+      };
+    }
+    // Handle network errors
+    if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+      return {
+        success: false,
+        error: 'Unable to connect to the server. Please check your internet connection.',
+      };
+    }
+    return {
+      success: false,
+      error: 'An unexpected error occurred while changing your username.',
+    };
+  }
+}
+
+// Update user's profile picture
+export async function updateUserProfilePicture(username: string, file: File) {
+  try {
+    // Basic file validation
+    if (!file.type.startsWith('image/')) {
+      return {
+        success: false,
+        error: 'Invalid file type. Please upload an image file.'
+      };
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit (matching Django validation)
+      return {
+        success: false,
+        error: 'File size too large. Maximum size is 10MB.'
+      };
+    }
+
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('profile_picture', file);
+
+    // Upload to Django backend
+    const response = await axios.put(`${API_BASE_URL}/users/${username}/profile-picture/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    });
+
+    return {
+      success: true,
+      message: response.data.message || 'Profile picture updated successfully',
+      user: response.data.user,
+      profilePictureUrl: response.data.user?.profile_picture
+    };
+
+  } catch (error: any) {
+    console.error('Error updating profile picture:', error);
+    
+    // Handle specific error responses from Django
+    if (error.response?.data) {
+      return {
+        success: false,
+        error: error.response.data.message || error.response.data.error || 'Failed to update profile picture'
+      };
+    }
+
+    // Handle network errors
+    if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+      return {
+        success: false,
+        error: 'Unable to connect to the server. Please check your internet connection.'
+      };
+    }
+
+    return {
+      success: false,
+      error: 'An unexpected error occurred while updating your profile picture.'
+    };
+  }
+}
+
+// Get user profile picture URL (with fallback)
+export function getUserProfilePicture(user: any): string {
+  if (user?.profile_picture) {
+    return user.profile_picture;
+  }
+  return 'https://cdn.kyleb.dev/pfp/defaultpfp.png';
+}
+
